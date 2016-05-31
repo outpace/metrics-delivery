@@ -5,4 +5,6 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [metrics-clojure "2.6.1"]
-                 [metrics-clojure-graphite "2.6.1"]])
+                 [metrics-clojure-graphite "2.6.1"]
+                 [metrics-clojure-ring "2.6.1"]
+                 [metrics-clojure-jvm "2.6.1"]])

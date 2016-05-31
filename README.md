@@ -8,26 +8,41 @@ Add the following dependency to your `project.clj` file:
 
 [![Clojars Project](http://clojars.org/com.outpace/metrics-delivery/latest-version.svg)](http://clojars.org/com.outpace/metrics-delivery)
 
+Require the library in your code:
+
+```clj
+    [outpace.metrics-delivery.core :as metrics-delivery]
+```
+
 Configure your reporters in a data structure, or pull it from the environment:
 
 ```clj
 (defconfig metrics-config
-  {:jmx {}
-   :graphite {:host "influxdb"
-              :port 2003
-              :prefix "quant"
-              :rate-unit :seconds
-              :duration-unit :milliseconds
-              :filter :all}})  
+  {:instrument {:jvm :all
+                :ring :routes}
+   :report {:jmx {}
+            :graphite {:host "myhost"
+                       :port 2003
+                       :prefix "myapp"}}})
 ```
 
-And now to start reporting:
+And start reporting (from an init or main function):
 
 ```clj
-(start-metrics metrics-config)
+(metrics-delivery/start metrics-config)
+```
+
+Create custom metrics (guages, counters, meters, histograms, timers) using `metrics-clojure`
+http://metrics-clojure.readthedocs.io/en/latest/metrics/meters.html
+
+You can specify multiple reporters of the same type using a vector of vectors instead of a map:
+```clj
+[[:graphite {:host "host1"}]
+ [:graphite {:host "host2"}]]
 ```
 
 Check out `outpace.config` for a concise and flexible way to manage your configuration.
+https://github.com/outpace/config
 
 
 ## License

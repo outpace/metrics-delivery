@@ -7,7 +7,9 @@
   #(rand-int 1000))
 
 (deftest a-test
-  (start-metrics {:console {:period 1}
-                  :csv {:period 1}})
+  (start
+    {:instrument {:jvm :all}
+     :report {:console {:period 1}
+              :csv {:period 1}}})
   (Thread/sleep 10000)
   (stop-metrics))
