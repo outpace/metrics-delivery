@@ -95,12 +95,16 @@
     (when (and ring (not attached))
       (alter-var-root #'attached (constantly true))
       (if-let [handler (some-> ring :handler resolve)]
-        (alter-var-root handler
-          (constantly
-            (cond-> @handler
-              (#{:all :by-method} ring) (metrics-ring/instrument)
-              (#{:all :by-uri} ring) (ring/instrument-by-uri)
-              (seq? ring) (ring/instrument-by-routes ring))))
+        (let [{:keys [by-method by-uri by-routes]} ring]
+          (if (or by-method by-uri by-routes)
+            (alter-var-root handler
+              (constantly
+                (cond-> @handler
+                  by-method (metrics-ring/instrument)
+                  by-uri (ring/instrument-by-uri)
+                  by-routes (ring/instrument-by-routes by-routes))))
+            (throw (ex-info "Must specify at least one of by-method by-uri by-routes"
+                            {:ring ring}))))
         (throw (ex-info "Could not resolve handler"
                         {:ring ring})))))
   (alter-var-root #'reporters

@@ -49,8 +49,9 @@
    (let [routes (distinct routes)
          metrics (into {}
                        (for [route routes]
-                         [(meter reg ["ring" "route" route])
-                          (timer reg ["ring" "route-time" route])]))]
+                         [route
+                          [(meter reg ["ring" "route" route])
+                           (timer reg ["ring" "route-time" route])]]))]
      (fn [request]
        (if-let [[m t] (some-> (match routes request) metrics)]
          (do

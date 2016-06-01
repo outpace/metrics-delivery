@@ -44,6 +44,9 @@ You can specify multiple reporters of the same type using a vector of vectors in
 Check out `outpace.config` for a concise and flexible way to manage your configuration.
 https://github.com/outpace/config
 
+## Contributing
+
+Pull requests are welcome!
 
 ## License
 
