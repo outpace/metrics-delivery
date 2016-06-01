@@ -10,7 +10,6 @@
   (start
     {:instrument {:jvm :all}
      :report {:console {:period 1}
-              ;;:csv {:period 1}
-              }})
+              :csv {:period 1}}})
   (Thread/sleep 10000)
   (stop-metrics))
