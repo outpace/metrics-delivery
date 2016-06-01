@@ -50,6 +50,7 @@ Pull requests are welcome!
 
 ## Releasing
 
+`lein release`
 `lein deploy`
 
 ## License
