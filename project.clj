@@ -1,4 +1,4 @@
-(defproject com.outpace/metrics-delivery "0.1.0-SNAPSHOT"
+(defproject com.outpace/metrics-delivery "0.1.0"
   :description "Conveniently start metric reporters from data (configuration)."
   :url "http://github.com/outpace/metrics-delivery"
   :license {:name "Eclipse Public License"

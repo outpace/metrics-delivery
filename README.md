@@ -48,6 +48,10 @@ https://github.com/outpace/config
 
 Pull requests are welcome!
 
+## Releasing
+
+`lein deploy`
+
 ## License
 
 Copyright © 2016 Outpace
