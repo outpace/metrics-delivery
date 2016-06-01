@@ -6,7 +6,7 @@
 (defgauge a-num
   #(rand-int 1000))
 
-#_(deftest a-test
+(deftest a-test
   (start
     {:instrument {:jvm :all}
      :report {:console {:period 1}

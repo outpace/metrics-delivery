@@ -3,6 +3,7 @@
     [clojure.test :refer :all]
     [outpace.metrics-delivery.ring :refer :all]
     [ring.middleware.defaults :refer [wrap-defaults api-defaults]]
+    [ring.mock.request :as mock]
     [compojure.core :refer [defroutes GET]]))
 
 (defroutes test-routes
@@ -16,4 +17,4 @@
 
 (deftest ring-test
   (is (= "Running"
-         (handler {:uri "/status"}))))
+         (:body (handler (mock/request :get "/status"))))))

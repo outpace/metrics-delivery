@@ -48,6 +48,11 @@
    :memory-usage jvm/register-memory-usage-gauge-set
    :thread-state jvm/register-thread-state-gauge-set})
 
+(def ring-instrumentation
+  {:by-method metrics-ring/instrument
+   :by-uri ring/instrument-by-uri
+   :by-routes ring/instrument-by-routes})
+
 (defn javaize [options]
   (into {}
         (for [[k v] options]
@@ -69,30 +74,33 @@
 (def attached false)
 
 (defn start
-  "Expects a map of reporter-type to reporter-options,
-  where reporter-type is one of :jmx :graphite :csv :console
+  "Instruments and starts reporting from configuartion.
+  {:instrument {instrument-type instrument-options}
+   :report {reporter-type reporter-options}}
+  Where instrument-type is one of :jvm :ring
+  And reporter-type is one of :jmx :graphite :csv :console
   Also you can specify :period in seconds."
   [{:keys [report instrument]}]
   (when reporters
     (stop-metrics))
-  ;; TODO: is this idempotent?
-  (when-let [jvm (:jvm instrument)]
-    (cond
-      (= :all jvm) (jvm/instrument-jvm)
-      (and (sequential? jvm) (every? (set (keys jvm-instrumentation)) jvm))
-      (doseq [k jvm]
-        ((jvm-instrumentation k) metrics/default-registry))
-      :else (throw (ex-info (str "JVM must be :all or a seq containing " (keys jvm-instrumentation))
-                            {:jvm jvm}))))
-  (when (not attached)
-    (alter-var-root #'attached (constantly true))
-    ;; TODO: don't double wrap if started twice
-    (when-let [ring (:ring instrument)]
+  (when-let [{:keys [jvm ring]} instrument]
+    (when jvm
+      (cond
+        (= :all jvm) (jvm/instrument-jvm)
+        (and (sequential? jvm) (every? (set (keys jvm-instrumentation)) jvm))
+        (doseq [k jvm]
+          ((jvm-instrumentation k) metrics/default-registry))
+        :else (throw (ex-info (str "JVM must be :all or a seq containing " (keys jvm-instrumentation))
+                              {:jvm jvm}))))
+    (when (and ring (not attached))
+      (alter-var-root #'attached (constantly true))
       (if-let [handler (some-> ring :handler resolve)]
         (alter-var-root handler
           (constantly
-            (metrics-ring/instrument
-              (ring/instrument-by-uri @handler))))
+            (cond-> @handler
+              (#{:all :by-method} ring) (metrics-ring/instrument)
+              (#{:all :by-uri} ring) (ring/instrument-by-uri)
+              (seq? ring) (ring/instrument-by-routes ring))))
         (throw (ex-info "Could not resolve handler"
                         {:ring ring})))))
   (alter-var-root #'reporters
