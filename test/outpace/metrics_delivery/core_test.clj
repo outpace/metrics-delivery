@@ -6,10 +6,11 @@
 (defgauge a-num
   #(rand-int 1000))
 
-(deftest a-test
+#_(deftest a-test
   (start
     {:instrument {:jvm :all}
      :report {:console {:period 1}
-              :csv {:period 1}}})
+              ;;:csv {:period 1}
+              }})
   (Thread/sleep 10000)
   (stop-metrics))

@@ -7,6 +7,7 @@
     [metrics.reporters.jmx :as jmx]
     [metrics.reporters.csv :as csv]
     [metrics.reporters.console :as console]
+    [metrics.ring.instrument :as metrics-ring]
     [outpace.metrics-delivery.ring :as ring])
   (:import
     [java.util.concurrent TimeUnit]
@@ -52,6 +53,7 @@
         (for [[k v] options]
           [k (get keywords v v)])))
 
+;; TODO: singletons aren't great
 (def reporters [])
 
 (defn stop-metrics []
@@ -63,6 +65,8 @@
                       {:k k
                        :available (keys stopper)}))))
   (alter-var-root #'reporters (constantly nil)))
+
+(def attached false)
 
 (defn start
   "Expects a map of reporter-type to reporter-options,
@@ -80,12 +84,16 @@
         ((jvm-instrumentation k) metrics/default-registry))
       :else (throw (ex-info (str "JVM must be :all or a seq containing " (keys jvm-instrumentation))
                             {:jvm jvm}))))
-  (when-let [ring (:ring instrument)]
-    (let [routes (resolve (:routes ring))
-          handler (resolve (:handler ring))]
-      (if (and handler routes)
-        (ring/instrument handler routes)
-        (throw (ex-info (str "Could not find" (if routes "handler" "routes"))
+  (when (not attached)
+    (alter-var-root #'attached (constantly true))
+    ;; TODO: don't double wrap if started twice
+    (when-let [ring (:ring instrument)]
+      (if-let [handler (some-> ring :handler resolve)]
+        (alter-var-root handler
+          (constantly
+            (metrics-ring/instrument
+              (ring/instrument-by-uri @handler))))
+        (throw (ex-info "Could not resolve handler"
                         {:ring ring})))))
   (alter-var-root #'reporters
     (constantly
